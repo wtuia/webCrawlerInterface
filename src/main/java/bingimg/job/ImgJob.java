@@ -1,9 +1,9 @@
 package bingimg.job;
 
 import bingimg.bean.BingImg;
-import com.zone.util.SendMessage;
 import common.PropertiesHandle;
 import bingimg.db.DB;
+import message.SendMessage;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
