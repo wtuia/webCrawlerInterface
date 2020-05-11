@@ -1,7 +1,6 @@
 package message;
 
 import bingimg.bean.MailBean;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

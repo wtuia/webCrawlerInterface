@@ -11,12 +11,24 @@ public class BingImg {
 	private String fileName;
 	private Date recordTime;
 	private String fullName;
+	private String content;
+
+	public BingImg() {
+	}
 
 	public BingImg(String url, String title, String titleUrl, Date recordTime) {
 		this.imageUrl = url;
 		this.title = title;
 		this.titleUrl = titleUrl;
 		this.recordTime = recordTime;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
 	}
 
 	public String getFullName() {
