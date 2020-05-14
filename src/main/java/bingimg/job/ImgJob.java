@@ -74,7 +74,7 @@ public class ImgJob implements Job {
 			URL url = new URL(bingImg.getImageUrl());
 			setFilePathANdName(url, localDateTime, bingImg);
 			FileUtil.checkFileAndSave(url, bingImg);
-			bingImg.setContent("必应每日一图在附件内:");
+			bingImg.setContent(getContent(bingImg));
 			return bingImg;
 		}catch (Exception e){
 			logger.error("获取数据失败，重新获取", e);
@@ -87,8 +87,13 @@ public class ImgJob implements Job {
 		}
 	}
 
+	private String getContent(BingImg img) {
+		String title = img.getTitle().replace("© ", "");
+		return "<a href=\"" + img.getTitleUrl() + "\">" + title + "</a>" + "<br>(点击获取更多详情)";
+	}
+
 	private void send(BingImg bingImg) {
-		String subject = "执行结果:" + time;
+		String subject = "("+time+")"+bingImg.getTitle().substring(0, bingImg.getTitle().indexOf("("));
 		String content = bingImg.getContent();
 		String[] files = null;
 		if (bingImg.getFullName() != null) {
