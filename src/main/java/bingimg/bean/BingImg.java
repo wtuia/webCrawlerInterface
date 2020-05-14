@@ -59,6 +59,14 @@ public class BingImg {
 		return baseUrl + imageUrl;
 	}
 
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setTitleUrl(String titleUrl) {
+		this.titleUrl = titleUrl;
+	}
+
 	public String getTitle() {
 		return title;
 	}

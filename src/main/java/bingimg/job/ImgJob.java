@@ -57,6 +57,8 @@ public class ImgJob implements Job {
 
 	public BingImg createWarnData() {
 		BingImg img = new BingImg();
+		img.setTitle("");
+		img.setTitle("");
 		img.setContent("获取文件异常，错误信息请查看日志");
 		return img;
 	}
