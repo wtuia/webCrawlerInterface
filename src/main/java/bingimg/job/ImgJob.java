@@ -28,11 +28,15 @@ import java.util.regex.Pattern;
 public class ImgJob implements Job {
 	private static final Logger logger = LoggerFactory.getLogger(ImgJob.class);
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	private static final String PARENT_PATH =
-			PropertiesHandle.getResourceInfoSetDefault("bingImg.savePath", "/data/bing/");
+	private static final String PARENT_PATH = PropertiesHandle.getResourceInfoSetDefault("bingImg.savePath",
+			"/data/bing/");
+	private static final String NET_PATH = PropertiesHandle.getResourceInfoSetDefault("bingImg.netPath",
+			"/usr/local/apache-tomcat-8.5.43/webapps/bingImgs/");
+	private static final String NET_ADDR = "http://139.155.83.148/bingImgs/";
 	private static Pattern pattern = Pattern.compile("//+th\\?id=OHR\\.([-._A-Za-z0-9]+)");
 	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
 	private String time;
+	private int year, month;
 	public static void main(String[] args) {
 		Configurator.initialize("log4j2.xml",
 				System.getProperty("user.dir") + File.separator + "log4j2.xml");
@@ -90,19 +94,18 @@ public class ImgJob implements Job {
 	}
 
 	private String getContent(BingImg img) {
+		String netPath = NET_ADDR + year + File.separator + month + File.separator + img.getFileName();
 		String title = img.getTitle().replace("© ", "");
-		return "<a href=\"" + img.getTitleUrl() + "\">" + title + "</a>" + "<br>(点击获取更多详情)";
+		return "<a href=\"" + img.getTitleUrl() + "\">" + title + "</a>" +
+				"<br>(内容来源于<a href=\"https://cn.bing.com/\">必应</a>)<br>"+
+				"<a href=\""+ netPath +"\"><img src=\""+ netPath +"\" style=\"width:200px\"/></a><span>点击获取原图</span>";
 	}
 
 	private void send(BingImg bingImg) {
 		String subject = "("+time+")"+bingImg.getTitle().substring(0, bingImg.getTitle().indexOf("("));
 		String content = bingImg.getContent();
-		String[] files = null;
-		if (bingImg.getFullName() != null) {
-			files = new String[]{bingImg.getFullName()};
-		}
 		String[] to = new String[]{"1424471149@qq.com","1195474371@qq.com"};
-		SendMessage.send(to,subject, content, files);
+		SendMessage.send(to,subject, content, null);
 	}
 
 	private void setFilePathANdName(URL url, LocalDateTime localDateTime, BingImg bingImg) {
@@ -114,10 +117,11 @@ public class ImgJob implements Job {
 			fileName += UUID.randomUUID() + ".jpg";
 		}
 		bingImg.setFileName(fileName);
-		int year = localDateTime.getYear();
-		int month = localDateTime.getMonthValue();
+		year = localDateTime.getYear();
+		month = localDateTime.getMonthValue();
 		String savePath = PARENT_PATH + year + File.separator + month;
 		bingImg.setFilePath(savePath);
+		bingImg.setNetFilePath(NET_PATH + year + File.separator + month);
 	}
 
 	public static String triggerExpression() {

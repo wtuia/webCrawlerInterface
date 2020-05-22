@@ -8,6 +8,7 @@ public class BingImg {
 	private String title;
 	private String titleUrl;
 	private String filePath;
+	private String netFilePath;
 	private String fileName;
 	private Date recordTime;
 	private String fullName;
@@ -49,6 +50,14 @@ public class BingImg {
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+
+	public String getNetFilePath() {
+		return netFilePath;
+	}
+
+	public void setNetFilePath(String netFilePath) {
+		this.netFilePath = netFilePath;
 	}
 
 	public static String getBaseUrl() {
