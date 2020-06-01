@@ -18,9 +18,17 @@ public class FileUtil {
 				logger.error("创建文件夹{}失败", bingImg.getFilePath());
 			}
 		}
+		File netPath = new File(bingImg.getNetFilePath());
+		if (!netPath.exists()) {
+			if (!netPath.mkdirs()){
+				logger.error("创建文件夹{}失败", bingImg.getFilePath());
+			}
+		}
 		String pathAndFileName = bingImg.getFilePath() + File.separator + bingImg.getFileName();
 		bingImg.setFullName(pathAndFileName);
 		saveFile(pathAndFileName, url);
+		String netPathAndFileName = bingImg.getNetFilePath() + File.separator + bingImg.getFileName();
+		saveFile(netPathAndFileName, url);
 	}
 
 	private static void saveFile(String pathAndName, URL url) {
