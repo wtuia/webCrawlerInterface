@@ -31,8 +31,8 @@ public class ImgJob implements Job {
 	private static final String PARENT_PATH = PropertiesHandle.getResourceInfoSetDefault("bingImg.savePath",
 			"/data/bing/");
 	private static final String NET_PATH = PropertiesHandle.getResourceInfoSetDefault("bingImg.netPath",
-			"/usr/local/apache-tomcat-8.5.43/webapps/bingImgs/");
-	private static final String NET_ADDR = "http://139.155.83.148/bingImgs/";
+			"/usr/local/apache-tomcat-9.0.13/webapps/bingImages/");
+	private static final String NET_ADDR = "http://124.70.68.205/bingImages/";
 	private static Pattern pattern = Pattern.compile("//+th\\?id=OHR\\.([-._A-Za-z0-9]+)");
 	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
 	private String time;
@@ -104,7 +104,7 @@ public class ImgJob implements Job {
 	private void send(BingImg bingImg) {
 		String subject = "("+time+")"+bingImg.getTitle().substring(0, bingImg.getTitle().indexOf("("));
 		String content = bingImg.getContent();
-		String[] to = new String[]{"1424471149@qq.com","1195474371@qq.com"};
+		String[] to = new String[]{"1424471149@qq.com", "1195474371@qq.com"};
 		SendMessage.send(to,subject, content, null);
 	}
 
