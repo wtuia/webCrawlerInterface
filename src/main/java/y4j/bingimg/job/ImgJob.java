@@ -1,18 +1,17 @@
-package bingimg.job;
+package y4j.bingimg.job;
 
-import bingimg.bean.BingImg;
-import bingimg.db.DB;
-import common.PropertiesHandle;
-import message.SendMessage;
+import org.springframework.beans.factory.annotation.Autowired;
+import y4j.bingimg.bean.BingImg;
+import y4j.bingimg.db.ImgDB;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.FileUtil;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.io.File;
 import java.net.URL;
@@ -25,25 +24,25 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ImgJob implements Job {
+public class ImgJob extends QuartzJobBean {
 	private static final Logger logger = LoggerFactory.getLogger(ImgJob.class);
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-	private static final String PARENT_PATH = PropertiesHandle.getResourceInfoSetDefault("bingImg.savePath",
-			"/data/bing/");
-	private static final String NET_PATH = PropertiesHandle.getResourceInfoSetDefault("bingImg.netPath",
-			"/usr/local/apache-tomcat-9.0.13/webapps/bingImages/");
-	private static final String NET_ADDR = "http://124.70.68.205/bingImages/";
-	private static Pattern pattern = Pattern.compile("//+th\\?id=OHR\\.([-._A-Za-z0-9]+)");
-	private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
+	private static final Pattern pattern = Pattern.compile("//+th\\?id=OHR\\.([-._A-Za-z0-9]+)");
+	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
+	
+	@Autowired
+	private ImgDB imgDB;
+	@Value("${bingImg.savePath}")
+	private String PARENT_PATH;
 	private String time;
-	private int year, month;
+	
 	public static void main(String[] args) {
 		Configurator.initialize("log4j2.xml",
 				System.getProperty("user.dir") + File.separator + "log4j2.xml");
-		new ImgJob().execute(null);
+		new ImgJob().executeInternal(null);
 	}
 	@Override
-	public void execute(JobExecutionContext jobExecutionContext) {
+	public void executeInternal(JobExecutionContext jobExecutionContext) {
 		time = SDF.format(System.currentTimeMillis());
 		BingImg bingImg;
 		int reCrawler = 0;
@@ -54,11 +53,12 @@ public class ImgJob implements Job {
 		if (reCrawler > 3) {
 			bingImg = createWarnData();
 		}else {
-			DB.save(bingImg);
+			imgDB.save(bingImg);
 		}
 		send(bingImg);
 	}
-
+	
+	
 	public BingImg createWarnData() {
 		BingImg img = new BingImg();
 		img.setTitle("");
@@ -77,7 +77,7 @@ public class ImgJob implements Job {
 			String title = description.attr("title");
 			String titleHref = description.attr("href");
 			BingImg bingImg = new BingImg(imgHref, title, titleHref, date);
-			URL url = new URL(bingImg.getImageUrl());
+			URL url = new URL(bingImg.getImageUrl().get(TypeEnum.HD.getType()));
 			setFilePathANdName(url, localDateTime, bingImg);
 			FileUtil.checkFileAndSave(url, bingImg);
 			bingImg.setContent(getContent(bingImg));
@@ -94,17 +94,26 @@ public class ImgJob implements Job {
 	}
 
 	private String getContent(BingImg img) {
-		String netPath = NET_ADDR + year + File.separator + month + File.separator + img.getFileName();
 		String title = img.getTitle().replace("© ", "");
-		return "<a href=\"" + img.getTitleUrl() + "\">" + title + "</a>" +
-				"<br>(内容来源于<a href=\"https://cn.bing.com/\">必应</a>)<br>"+
-				"<a href=\""+ netPath +"\"><img src=\""+ netPath +"\" style=\"width:200px\"/></a><span>点击获取原图</span>";
+		StringBuilder builder = new StringBuilder("<p><a href=\"" + img.getTitleUrl() + "\">" + title + "</a>" +
+				"(内容来源于<a href=\"https://cn.bing.com/\">必应</a>)</p>");
+		builder.append("<p><img src=\"").append(img.getImageUrl().get(TypeEnum.HD.getType()))
+				.append("\" style=\"width:200px\"/><span>预览图</span></p>");
+		for (TypeEnum typeEnum : TypeEnum.values()) {
+			builder.append("<p><a href=\"").append(img.getImageUrl().get(typeEnum.getType())).append("\">")
+					.append(typeEnum.getType()).append("(").append(typeEnum.getSize()).append(")").append("</a></p>");
+		}
+		return builder.toString();
 	}
 
 	private void send(BingImg bingImg) {
-		String subject = "("+time+")"+bingImg.getTitle().substring(0, bingImg.getTitle().indexOf("("));
+		String subject;
+		if(bingImg.getTitle().contains("("))
+			subject = "("+time+")"+bingImg.getTitle().substring(0, bingImg.getTitle().indexOf("("));
+		else
+			subject = "("+time+")"+bingImg.getTitle();
 		String content = bingImg.getContent();
-		String[] to = new String[]{"1424471149@qq.com", "1195474371@qq.com"};
+		String[] to = new String[]{"1424471149@qq.com"};
 		SendMessage.send(to,subject, content, null);
 	}
 
@@ -117,19 +126,10 @@ public class ImgJob implements Job {
 			fileName += UUID.randomUUID() + ".jpg";
 		}
 		bingImg.setFileName(fileName);
-		year = localDateTime.getYear();
-		month = localDateTime.getMonthValue();
+		int year = localDateTime.getYear();
+		int month = localDateTime.getMonthValue();
 		String savePath = PARENT_PATH + year + File.separator + month;
 		bingImg.setFilePath(savePath);
-		bingImg.setNetFilePath(NET_PATH + year + File.separator + month);
-	}
-
-	public static String triggerExpression() {
-		String startTime = PropertiesHandle.
-				getResourceInfoSetDefault("bingImgTask.startTime", "00:30");
-		String[] startTimes = startTime.split(":");
-		startTime = "0 " + startTimes[1] + " " + startTimes[0] + " * * ?";
-		return startTime;
 	}
 
 }

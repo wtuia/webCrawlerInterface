@@ -1,4 +1,4 @@
-package bingimg.bean;
+package y4j.bingimg.bean;
 
 import java.util.Arrays;
 

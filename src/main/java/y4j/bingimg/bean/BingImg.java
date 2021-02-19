@@ -1,14 +1,17 @@
-package bingimg.bean;
+package y4j.bingimg.bean;
 
-import java.util.Date;
+import y4j.bingimg.job.TypeEnum;
+
+import java.sql.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BingImg {
-	private static final String baseUrl = "https://cn.bing.com/";
-	private String imageUrl;
+	private static final String baseUrl = "http://cn.bing.com/";
+	private final Map<String, String> imageUrl = new HashMap<>();
 	private String title;
 	private String titleUrl;
 	private String filePath;
-	private String netFilePath;
 	private String fileName;
 	private Date recordTime;
 	private String fullName;
@@ -17,11 +20,14 @@ public class BingImg {
 	public BingImg() {
 	}
 
-	public BingImg(String url, String title, String titleUrl, Date recordTime) {
-		this.imageUrl = url;
+	public BingImg(String url, String title, String titleUrl, java.util.Date recordTime) {
+		url = url.substring(0, url.indexOf("jpg") + 3);
+		for (TypeEnum typeEnum : y4j.bingimg.job.TypeEnum.values()) {
+			imageUrl.put(typeEnum.getType(), baseUrl + url.replace("1920x1080", typeEnum.getSize()));
+		}
 		this.title = title;
 		this.titleUrl = titleUrl;
-		this.recordTime = recordTime;
+		this.recordTime = new Date(recordTime.getTime());
 	}
 
 	public String getContent() {
@@ -52,28 +58,16 @@ public class BingImg {
 		this.filePath = filePath;
 	}
 
-	public String getNetFilePath() {
-		return netFilePath;
-	}
-
-	public void setNetFilePath(String netFilePath) {
-		this.netFilePath = netFilePath;
-	}
-
 	public static String getBaseUrl() {
 		return baseUrl;
 	}
-
-	public String getImageUrl() {
-		return baseUrl + imageUrl;
+	
+	public Map<String, String> getImageUrl() {
+		return imageUrl;
 	}
-
+	
 	public void setTitle(String title) {
 		this.title = title;
-	}
-
-	public void setTitleUrl(String titleUrl) {
-		this.titleUrl = titleUrl;
 	}
 
 	public String getTitle() {

@@ -1,8 +1,8 @@
-package message;
+package y4j.bingimg.job;
 
-import bingimg.bean.MailBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import y4j.bingimg.bean.MailBean;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -28,7 +28,7 @@ public class SendMessage {
 
     private static void lodProperties() {
         if (properties == null) {
-            String filePath = "y4j.properties";
+            String filePath = "mail.properties";
             try (FileInputStream fis = new FileInputStream(filePath)){
                 properties = new Properties();
                 properties.load(fis);
@@ -40,20 +40,12 @@ public class SendMessage {
                 ADDR = properties.getProperty("addr");
                 PASS = properties.getProperty("pass");
             }catch (Exception e) {
-                logger.error("读取邮件参数异常");
+                logger.error("读取邮件参数异常", e);
             }
         }
     }
 
-	/*public static void main(String[] args) {
-		String subject = "邮件标题";
-		String content = "邮件正文";
-		String[] files = new String[]{"C:\\Users\\14244\\Desktop\\LNTIL-MA-CMNET-BAS07-CTLJME60X"};
-		String to[] = new String[]{"1424471149@qq.com"};
-		SendMessage.send(to,subject, content, files);
-	}*/
-
-	public static void  send(String[] to, String subject, String content, String[] files){
+	public static void send(String[] to, String subject, String content, String[] files){
 		MailBean bean = new MailBean(subject, content, files, to);
 		send(bean);
 	}
